@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Talks Event Schedule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        #categorySearch {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .talk-card, .lunch-break {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .lunch-break {
+            background-color: #ffe066;
+            color: #333;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            justify-content: center;
+            align-items: center;
+        }
+        .talk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .talk-header h2 {
+            margin: 0;
+            color: #007bff;
+            font-size: 1.3em;
+            flex-grow: 1;
+        }
+        .talk-time {
+            font-weight: bold;
+            color: #555;
+            flex-shrink: 0;
+            margin-left: 15px;
+        }
+        .talk-speakers {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .talk-category {
+            font-size: 0.9em;
+            color: #0056b3;
+            margin-bottom: 10px;
+        }
+        .talk-description {
+            line-height: 1.5;
+        }
+        .no-results {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Technical Talks Event Schedule</h1>
+        <input type="text" id="categorySearch" placeholder="Search by category...">
+        <div id="scheduleContainer">
+            <!-- Talks will be rendered here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const initialTalksData = [
+            {
+                title: "Introduction to WebAssembly",
+                speakers: ["Alice Johnson"],
+                category: ["Web Development", "Performance"],
+                description: "A deep dive into WebAssembly and how it can boost web application performance.",
+            },
+            {
+                title: "Modern CSS Techniques",
+                speakers: ["Bob Williams", "Carol Davis"],
+                category: ["Frontend", "CSS", "Design"],
+                description: "Explore the latest features in CSS for creating stunning and responsive user interfaces.",
+            },
+            {
+                title: "Node.js Microservices Best Practices",
+                speakers: ["David Lee"],
+                category: ["Backend", "Node.js", "Architecture"],
+                description: "Learn how to build scalable and maintainable microservices using Node.js.",
+            },
+            {
+                title: "Understanding React Hooks",
+                speakers: ["Eve Brown"],
+                category: ["Frontend", "React", "JavaScript"],
+                description: "Master the fundamental and advanced concepts of React Hooks for better state management.",
+            },
+            {
+                title: "Cloud Native with Kubernetes",
+                speakers: ["Frank White"],
+                category: ["DevOps", "Cloud", "Kubernetes"],
+                description: "An overview of deploying and managing applications on Kubernetes in a cloud-native environment.",
+            },
+            {
+                title: "AI in Software Engineering",
+                speakers: ["Grace Green", "Henry Black"],
+                category: ["AI", "Software Development", "Future Tech"],
+                description: "Discover how artificial intelligence is transforming the software development lifecycle.",
+            },
+        ];
+
+        let allScheduledItems = []; // To store both talks and lunch break
+
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function generateSchedule() {
+            let currentTime = new Date();
+            currentTime.setHours(10, 0, 0); // Event starts at 10:00 AM
+
+            let talkIndex = 0;
+            while (talkIndex < initialTalksData.length) {
+                // Add talk
+                const talk = { ...initialTalksData[talkIndex] }; // Create a copy
+                talk.startTime = new Date(currentTime);
+                currentTime.setMinutes(currentTime.getMinutes() + 60); // 1 hour talk
+                talk.endTime = new Date(currentTime);
+                allScheduledItems.push(talk);
+                talkIndex++;
+
+                if (talkIndex === 2) { // After the second talk, add lunch
+                    currentTime.setMinutes(currentTime.getMinutes() + 10); // 10 min transition before lunch
+                    const lunchStartTime = new Date(currentTime);
+                    currentTime.setMinutes(currentTime.getMinutes() + 60); // 1 hour lunch
+                    const lunchEndTime = new Date(currentTime);
+                    allScheduledItems.push({
+                        type: "lunch",
+                        title: "Lunch Break",
+                        startTime: lunchStartTime,
+                        endTime: lunchEndTime,
+                        description: "Enjoy a delicious lunch!",
+                    });
+                }
+
+                if (talkIndex < initialTalksData.length) {
+                    currentTime.setMinutes(currentTime.getMinutes() + 10); // 10 min transition between talks
+                }
+            }
+        }
+
+        function renderSchedule(filteredItems) {
+            const container = document.getElementById('scheduleContainer');
+            container.innerHTML = ''; // Clear previous content
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = '<div class="no-results">No talks found matching your search.</div>';
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                if (item.type === "lunch") {
+                    const lunchDiv = document.createElement('div');
+                    lunchDiv.className = 'lunch-break';
+                    lunchDiv.innerHTML = `
+                        <p>${item.title} (${formatTime(item.startTime)} - ${formatTime(item.endTime)})</p>
+                        <p>${item.description}</p>
+                    `;
+                    container.appendChild(lunchDiv);
+                } else {
+                    const talkDiv = document.createElement('div');
+                    talkDiv.className = 'talk-card';
+                    talkDiv.innerHTML = `
+                        <div class="talk-header">
+                            <h2>${item.title}</h2>
+                            <span class="talk-time">${formatTime(item.startTime)} - ${formatTime(item.endTime)}</span>
+                        </div>
+                        <p class="talk-speakers">Speaker(s): ${item.speakers.join(', ')}</p>
+                        <p class="talk-category">Categories: ${item.category.join(', ')}</p>
+                        <p class="talk-description">${item.description}</p>
+                    `;
+                    container.appendChild(talkDiv);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateSchedule();
+            renderSchedule(allScheduledItems);
+
+            const searchInput = document.getElementById('categorySearch');
+            searchInput.addEventListener('input', (event) => {
+                const searchTerm = event.target.value.toLowerCase();
+                const filteredTalks = allScheduledItems.filter(item => {
+                    if (item.type === "lunch") return true; // Always show lunch break
+                    return item.category.some(cat => cat.toLowerCase().includes(searchTerm));
+                });
+                renderSchedule(filteredTalks);
+            });
+        });
+    </script>
+</body>
+</html>
